@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">AssesmentMobpro3</string>
+
+    <!--Google Auth-->
+    <string name="profil">Profil</string>
+    <!-- Profil Dialog   -->
+    <string name="logout">Logout</string>
+    <string name="tutup">Tutup</string>
 </resources>
