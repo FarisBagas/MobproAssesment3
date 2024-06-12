@@ -6,4 +6,6 @@
     <!-- Profil Dialog   -->
     <string name="logout">Logout</string>
     <string name="tutup">Tutup</string>
+    <!--  Mainscreen layout gambar  -->
+    <string name="gambar">Gambar %1$s</string>
 </resources>
