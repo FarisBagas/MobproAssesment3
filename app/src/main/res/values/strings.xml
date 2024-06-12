@@ -9,4 +9,13 @@
     <!--  Mainscreen layout gambar  -->
     <string name="gambar">Gambar %1$s</string>
     <string name="tambah">Tambah Mouse</string>
+    <!--  Mouse Dialog   -->
+    <string name="nama">Nama Mouse</string>
+    <string name="model">Model Mouse</string>
+    <!--  button on mouse dialog  -->
+    <string name="batal">Batal</string>
+    <string name="simpan">Simpan</string>
+    <!--   Menangani json error -->
+    <string name="error">Error</string>
+    <string name="coba_lagi">Coba Lagi</string>
 </resources>
