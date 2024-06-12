@@ -29,6 +29,6 @@ object MouseApi{
         retrofit.create(MouseApiService::class.java)
     }
     fun getMouseUrl(imageId: String):String{
-        return "$BASE_URL$imageId.jpg"
+        return "${BASE_URL}image.php?id=$imageId"
     }
 }

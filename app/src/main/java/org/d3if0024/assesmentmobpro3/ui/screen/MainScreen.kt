@@ -1,6 +1,8 @@
 package org.d3if0024.assesmentmobpro3.ui.screen
 
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -11,7 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +45,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,6 +56,7 @@ import org.d3if0024.assesmentmobpro3.model.Mouse
 import org.d3if0024.assesmentmobpro3.model.User
 import org.d3if0024.assesmentmobpro3.network.MouseApi
 import org.d3if0024.assesmentmobpro3.network.UserDataStore
+import org.d3if0024.assesmentmobpro3.network.getCropperImage
 import org.d3if0024.assesmentmobpro3.network.signIn
 import org.d3if0024.assesmentmobpro3.network.signOut
 import org.d3if0024.assesmentmobpro3.ui.theme.AssesmentMobpro3Theme
@@ -61,6 +70,13 @@ fun MainScreen() {
     val user by dataStore.userFlow.collectAsState(User())
 
     var showDialog by remember { mutableStateOf(false) }
+    var showMouseDialog by remember { mutableStateOf(false) }
+
+    var bitmap: Bitmap? by remember { mutableStateOf(null) }
+    val launcher = rememberLauncherForActivityResult(CropImageContract()){
+        bitmap = getCropperImage(context.contentResolver,it)
+        if (bitmap != null)showMouseDialog = true
+    }
 
     Scaffold (
         topBar = {
@@ -89,6 +105,16 @@ fun MainScreen() {
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Add ,
+                    contentDescription = stringResource(id = R.string.tambah)
+                )
+            }
         }
     ) { padding ->
         ScreenContent(Modifier.padding(padding))

@@ -1,6 +1,11 @@
 package org.d3if0024.assesmentmobpro3.network
 
+import android.content.ContentResolver
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -9,6 +14,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.ClearCredentialException
 import androidx.credentials.exceptions.GetCredentialException
+import com.canhub.cropper.CropImageView
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -65,4 +71,24 @@ private suspend fun handleSignIn(
     }catch (e: ClearCredentialException){
         Log.e("SIGN-IN", "Error: ${e.errorMessage}")
     }
+}
+
+ fun getCropperImage(
+    resolver: ContentResolver,
+    result: CropImageView.CropResult
+): Bitmap?{
+    if (!result.isSuccessful){
+        Log.e("IMAGE", "Error: ${result.error}")
+        return null
+    }
+
+    val uri = result.uriContent ?: return null
+
+    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        MediaStore.Images.Media.getBitmap(resolver, uri)
+    }else {
+        val source = ImageDecoder.createSource(resolver,uri)
+        ImageDecoder.decodeBitmap(source)
+    }
+
 }

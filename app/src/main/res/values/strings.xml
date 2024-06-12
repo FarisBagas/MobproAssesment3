@@ -8,4 +8,5 @@
     <string name="tutup">Tutup</string>
     <!--  Mainscreen layout gambar  -->
     <string name="gambar">Gambar %1$s</string>
+    <string name="tambah">Tambah Mouse</string>
 </resources>
