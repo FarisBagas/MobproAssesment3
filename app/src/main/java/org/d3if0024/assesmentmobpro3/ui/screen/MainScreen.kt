@@ -2,6 +2,7 @@ package org.d3if0024.assesmentmobpro3.ui.screen
 
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -183,7 +186,12 @@ fun ScreenContent(viewModel: MainViewModel, userId: String,modifier: Modifier){
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ){
-                items(data){ ListItem(mouse = it)}
+                items(data){ mouse ->
+                    ListItem(mouse = mouse, onDelete = {mouseId ->
+                        Log.d("ScreenContent", "Deleting hewan with ID: $mouseId")
+                        viewModel.deleteData(userId,mouseId)
+                    } )
+                }
             }
         }
 
@@ -208,7 +216,19 @@ fun ScreenContent(viewModel: MainViewModel, userId: String,modifier: Modifier){
 }
 
 @Composable
-fun  ListItem(mouse: Mouse){
+fun  ListItem(mouse: Mouse,onDelete: (String) -> Unit){
+
+    var showDialog by remember { mutableStateOf(false) }
+
+    DisplayAlertDialog(
+        openDialog = showDialog,
+        onDismissRequest = { showDialog = false },
+        onConfirmation = {
+            onDelete(mouse.id)
+            showDialog = false
+        }
+    )
+
     Box (
         modifier = Modifier
             .padding(4.dp)
@@ -229,24 +249,37 @@ fun  ListItem(mouse: Mouse){
                 .fillMaxWidth()
                 .padding(4.dp)
         )
-        Column(
+
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp)
                 .background(Color(red = 0f, green = 0f, blue = 0f, alpha = 0.5f))
-                .padding(4.dp)
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = mouse.namaMouse,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Text(
-                text = mouse.modelMouse,
-                fontStyle = FontStyle.Italic,
-                fontSize = 14.sp,
-                color = Color.White
-            )
+            Column {
+                Text(
+                    text = mouse.namaMouse,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = mouse.modelMouse,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
+            }
+            IconButton(onClick = {
+                showDialog = true
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "",
+                    tint = Color.White
+                )
+            }
         }
     }
 }

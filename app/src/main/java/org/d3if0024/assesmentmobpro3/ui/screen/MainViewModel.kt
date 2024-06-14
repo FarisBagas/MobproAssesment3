@@ -27,8 +27,10 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch (Dispatchers.IO ) {
             try {
                 data.value = MouseApi.service.getMouse(userId)
+                status.value = MouseApi.ApiStatus.SUCCESS
             }catch (e: Exception){
                 Log.d("MainViewModel", "Failure: ${e.message}")
+                status.value = MouseApi.ApiStatus.FAILED
             }
         }
     }
@@ -52,6 +54,8 @@ class MainViewModel : ViewModel() {
             }
         }
     }
+
+
     private fun Bitmap.toMultipartBody(): MultipartBody.Part{
         val stream = ByteArrayOutputStream()
         compress(Bitmap.CompressFormat.JPEG,80,stream)
@@ -60,6 +64,24 @@ class MainViewModel : ViewModel() {
             "image/jpg".toMediaTypeOrNull(),0,byteArray.size)
         return MultipartBody.Part.createFormData(
             "image", "image.jpg", requestBody)
+    }
+
+    fun deleteData(userId: String, mouseId: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val response = MouseApi.service.deleteMouse(userId, mouseId)
+                if (response.status == "success") {
+                    Log.d("MainViewModel", "Image deleted successfully: $mouseId")
+                    retrieveData(userId) // Refresh data after deletion
+                } else {
+                    Log.d("MainViewModel", "Failed to delete the image: ${response.message}")
+                    errorMessage.value = "Failed to delete the image: ${response.message}"
+                }
+            } catch (e: Exception) {
+                Log.d("MainViewModel", "Failure: ${e.message}")
+                errorMessage.value = "Error: ${e.message}"
+            }
+        }
     }
     fun clearMessage(){ errorMessage.value = null}
 }

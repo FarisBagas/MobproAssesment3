@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AssesmentMobpro3</string>
+    <string name="app_name">Galeri Mouse</string>
 
     <!--Google Auth-->
     <string name="profil">Profil</string>
@@ -18,4 +18,8 @@
     <!--   Menangani json error -->
     <string name="error">Error</string>
     <string name="coba_lagi">Coba Lagi</string>
+    <!--Display alert Dialog-->
+    <string name="hapus">Hapus</string>
+    <string name="tombol_hapus">Hapus</string>
+    <string name="tombol_batal">Batal</string>
 </resources>
