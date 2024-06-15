@@ -307,6 +307,7 @@ fun GridItem(mouse: Mouse, onDelete: (String) -> Unit) {
                 .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+
             Column {
                 Text(
                     text = mouse.namaMouse,
@@ -335,25 +336,38 @@ fun GridItem(mouse: Mouse, onDelete: (String) -> Unit) {
 
 @Composable
 fun ListItem(mouse: Mouse) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(MouseApi.getMouseUrl(mouse.imageId))
+                .crossfade(true)
+                .build(),
+            contentDescription = stringResource(id = R.string.gambar, mouse.namaMouse),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.loading_img),
+            error = painterResource(id = R.drawable.baseline_broken_image_24),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
+        )
+
         Text(
             text = mouse.namaMouse,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = Color.Black
         )
         Text(
             text = mouse.modelMouse,
             fontStyle = FontStyle.Italic,
             fontSize = 14.sp,
-            color = Color.White
+            color = Color.Black
         )
-
     }
 
 }
