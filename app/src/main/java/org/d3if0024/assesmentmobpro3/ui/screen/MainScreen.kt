@@ -200,34 +200,48 @@ fun ScreenContent(showList: Boolean, viewModel: MainViewModel, userId: String, m
         }
 
         MouseApi.ApiStatus.SUCCESS -> {
-            if (showList) {
-                LazyColumn(
-                    modifier = modifier
-                        .fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 84.dp)
-                ) {
-                    items(data) {
-                        ListItem(mouse = it)
-                        Divider()
-                    }
-                }
-            }
-            else{
-                LazyVerticalStaggeredGrid(
-                    modifier = modifier.fillMaxSize(),
-                    columns = StaggeredGridCells.Fixed(2),
-                    verticalItemSpacing = 8.dp,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(8.dp, 8.dp ,8.dp, 84.dp),
+            if (data.isEmpty()){
+                Column (
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ){
-                    items(data){
-                        GridItem(mouse = it, onDelete = {mouseId ->
-                            Log.d("screenContent", "Deleting mouse with ID: $mouseId")
-                            viewModel.deleteData(userId, mouseId)
-                        })
+                    Text(text = stringResource(id = R.string.data_kosong)
+                    )
+                }
+            }else{
+                if (showList) {
+                    LazyColumn(
+                        modifier = modifier
+                            .fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 84.dp)
+                    ) {
+                        items(data) {
+                            ListItem(mouse = it)
+                            Divider()
+                        }
+                    }
+                }
+                else{
+                    LazyVerticalStaggeredGrid(
+                        modifier = modifier.fillMaxSize(),
+                        columns = StaggeredGridCells.Fixed(2),
+                        verticalItemSpacing = 8.dp,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(8.dp, 8.dp ,8.dp, 84.dp),
+                    ){
+                        items(data){
+                            GridItem(mouse = it, onDelete = {mouseId ->
+                                Log.d("screenContent", "Deleting mouse with ID: $mouseId")
+                                viewModel.deleteData(userId, mouseId)
+                            })
+                        }
                     }
                 }
             }
+
         }
 
         MouseApi.ApiStatus.FAILED -> {

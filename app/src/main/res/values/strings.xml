@@ -25,4 +25,6 @@
     <!--Display alert Dialog-->
     <string name="list">Tampilan list</string>
     <string name="grid">Tampilan grid</string>
+
+    <string name="data_kosong">Data Masih belum ditambahkan</string>
 </resources>
