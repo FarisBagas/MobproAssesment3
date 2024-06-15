@@ -15,14 +15,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -69,6 +72,7 @@ import org.d3if0024.assesmentmobpro3.network.getCropperImage
 import org.d3if0024.assesmentmobpro3.network.signIn
 import org.d3if0024.assesmentmobpro3.network.signOut
 import org.d3if0024.assesmentmobpro3.ui.theme.AssesmentMobpro3Theme
+import org.d3if0024.assesmentmobpro3.util.SettingsDataStore
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,12 +89,14 @@ fun MainScreen() {
     var showMouseDialog by remember { mutableStateOf(false) }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
-    val launcher = rememberLauncherForActivityResult(CropImageContract()){
-        bitmap = getCropperImage(context.contentResolver,it)
-        if (bitmap != null)showMouseDialog = true
+    val launcher = rememberLauncherForActivityResult(CropImageContract()) {
+        bitmap = getCropperImage(context.contentResolver, it)
+        if (bitmap != null) showMouseDialog = true
     }
+    val settingStore = SettingsDataStore(context)
+    val showList by settingStore.layoutFlow.collectAsState(true)
 
-    Scaffold (
+    Scaffold(
         topBar = {
             TopAppBar(title = {
                 Text(text = (stringResource(id = R.string.app_name)))
@@ -100,29 +106,44 @@ fun MainScreen() {
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 actions = {
-                    IconButton(onClick = {
-                        if (user.email.isEmpty()){
-                            CoroutineScope(Dispatchers.IO) .launch { signIn(context, dataStore) }
-                        }
-                        else{
-                            showDialog = true
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_person_24),
-                            contentDescription = stringResource(id = R.string.profil),
-                            tint = MaterialTheme.colorScheme.primary
+                    Row {
+                        IconButton(onClick = {
+                            if (user.email.isEmpty()) {
+                                CoroutineScope(Dispatchers.IO).launch { signIn(context, dataStore) }
+                            } else {
+                                showDialog = true
+                            }
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_person_24),
+                                contentDescription = stringResource(id = R.string.profil),
+                                tint = MaterialTheme.colorScheme.primary
 
-                        )
+                            )
+                        }
+                        IconButton(onClick = { CoroutineScope(Dispatchers.IO).launch {settingStore.saveLayout(!showList) } }) {
+                            Icon(
+                                painter = painterResource(
+                                    if (showList) R.drawable.baseline_grid_view_24
+                                    else R.drawable.baseline_view_list_24
+                                ),
+                                contentDescription = stringResource(
+                                    if (showList) R.string.grid
+                                    else R.string.list
+                                ),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                }
+                    }
+
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 val options = CropImageContractOptions(
                     null, CropImageOptions(
-                        imageSourceIncludeGallery =false,
+                        imageSourceIncludeGallery = false,
                         imageSourceIncludeCamera = true,
                         fixAspectRatio = true
                     )
@@ -130,17 +151,17 @@ fun MainScreen() {
                 launcher.launch(options)
             }) {
                 Icon(
-                    imageVector = Icons.Default.Add ,
+                    imageVector = Icons.Default.Add,
                     contentDescription = stringResource(id = R.string.tambah)
                 )
             }
         }
     ) { padding ->
-        ScreenContent(viewModel,user.email,Modifier.padding(padding))
-        if (showDialog){
+        ScreenContent(showList, viewModel, user.email, Modifier.padding(padding))
+        if (showDialog) {
             ProfilDialog(
-                user = user ,
-                onDismissRequest = {showDialog = false }) {
+                user = user,
+                onDismissRequest = { showDialog = false }) {
                 CoroutineScope(Dispatchers.IO).launch { signOut(context, dataStore) }
                 showDialog = false
             }
@@ -152,59 +173,73 @@ fun MainScreen() {
                 viewModel.saveData(user.email, namaMouse, modelMouse, bitmap!!)
                 showMouseDialog = false
             }
-            if (errorMessage != null){
+            if (errorMessage != null) {
                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 viewModel.clearMessage()
             }
         }
     }
 }
+
 @Composable
-fun ScreenContent(viewModel: MainViewModel, userId: String,modifier: Modifier){
+fun ScreenContent(showList: Boolean, viewModel: MainViewModel, userId: String, modifier: Modifier) {
     val data by viewModel.data
     val status by viewModel.status.collectAsState()
-
-    LaunchedEffect(userId ){
+    LaunchedEffect(userId) {
         viewModel.retrieveData(userId)
     }
 
-    when (status){
-        MouseApi.ApiStatus.LOADING ->{
+    when (status) {
+        MouseApi.ApiStatus.LOADING -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
-            ){
+            ) {
                 CircularProgressIndicator()
             }
         }
 
         MouseApi.ApiStatus.SUCCESS -> {
-            LazyVerticalGrid (
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(4.dp),
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ){
-                items(data){ mouse ->
-                    ListItem(mouse = mouse, onDelete = {mouseId ->
-                        Log.d("ScreenContent", "Deleting hewan with ID: $mouseId")
-                        viewModel.deleteData(userId,mouseId)
-                    } )
+            if (showList) {
+                LazyColumn(
+                    modifier = modifier
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 84.dp)
+                ) {
+                    items(data) {
+                        ListItem(mouse = it)
+                        Divider()
+                    }
+                }
+            }
+            else{
+                LazyVerticalStaggeredGrid(
+                    modifier = modifier.fillMaxSize(),
+                    columns = StaggeredGridCells.Fixed(2),
+                    verticalItemSpacing = 8.dp,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(8.dp, 8.dp ,8.dp, 84.dp),
+                ){
+                    items(data){
+                        GridItem(mouse = it, onDelete = {mouseId ->
+                            Log.d("screenContent", "Deleting mouse with ID: $mouseId")
+                            viewModel.deleteData(userId, mouseId)
+                        })
+                    }
                 }
             }
         }
 
-        MouseApi.ApiStatus.FAILED-> {
-            Column (
+        MouseApi.ApiStatus.FAILED -> {
+            Column(
                 modifier = modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
 
-            ){
+            ) {
                 Text(text = stringResource(id = R.string.error))
                 Button(
-                    onClick = {viewModel.retrieveData(userId) },
+                    onClick = { viewModel.retrieveData(userId) },
                     modifier = Modifier.padding(top = 16.dp),
                     contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp)
                 ) {
@@ -216,7 +251,7 @@ fun ScreenContent(viewModel: MainViewModel, userId: String,modifier: Modifier){
 }
 
 @Composable
-fun  ListItem(mouse: Mouse,onDelete: (String) -> Unit){
+fun GridItem(mouse: Mouse, onDelete: (String) -> Unit) {
 
     var showDialog by remember { mutableStateOf(false) }
 
@@ -229,15 +264,15 @@ fun  ListItem(mouse: Mouse,onDelete: (String) -> Unit){
         }
     )
 
-    Box (
+    Box(
         modifier = Modifier
             .padding(4.dp)
             .border(1.dp, Color.Gray),
         contentAlignment = Alignment.BottomCenter
 
-    ){
+    ) {
         AsyncImage(
-            model =ImageRequest.Builder(LocalContext.current)
+            model = ImageRequest.Builder(LocalContext.current)
                 .data(MouseApi.getMouseUrl(mouse.imageId))
                 .crossfade(true)
                 .build(),
@@ -284,10 +319,35 @@ fun  ListItem(mouse: Mouse,onDelete: (String) -> Unit){
     }
 }
 
+@Composable
+fun ListItem(mouse: Mouse) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = mouse.namaMouse,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = mouse.modelMouse,
+            fontStyle = FontStyle.Italic,
+            fontSize = 14.sp,
+            color = Color.White
+        )
+
+    }
+
+}
+
 @Preview(showBackground = true)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
-fun ScreenPreview(){
+fun ScreenPreview() {
     AssesmentMobpro3Theme {
         MainScreen()
     }
